@@ -1,6 +1,17 @@
 
 import click
-from kaifa_meter.reader import read_serial
+from kaifa_meter.reader import read_serial, read_file
+
+
+class FileWriter:
+    def __init__(self, filename):
+        self.filename = filename
+        with open(self.filename, 'w') as fp:
+            fp.write('')
+
+    def write(self, msg):
+        with open(self.filename, 'a') as fp:
+            fp.write(str(msg))
 
 
 @click.group()
@@ -10,14 +21,23 @@ def cli():
 
 @cli.command()
 @click.argument('device')
-def serial(device):
-    read_serial(device)
+@click.option('-o', '--outfile', help="File to write parsed data. Default stdout.")
+def serial(device, outfile):
+    callback = None
+    if outfile is not None:
+        w = FileWriter(outfile)
+        callback = w.write
+
+    read_serial(device, callback)
 
 
 @cli.command()
-def initdb():
-    print('InitDb')
-
-
-if __name__ == '__main__':
-    cli()
+@click.argument('file')
+@click.option('-o', '--outfile', help="File to write parsed data. Default stdout.")
+def parse(file, outfile):
+    msg = read_file(file)
+    if outfile is not None:
+        w = FileWriter(outfile)
+        w.write(msg)
+    else:
+        print(msg)

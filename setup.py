@@ -15,6 +15,11 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     install_requires=['construct>=2.9', 'pyserial', 'Click'],
     python_requires='>=3.6',
+    entry_points={
+        'console_scripts': [
+            'kaifa_meter=kaifa_meter.cli:cli',
+        ],
+    },
     classifiers=[
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",

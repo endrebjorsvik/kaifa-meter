@@ -51,7 +51,7 @@ def read_serial(device_path, callback=None):
 
 def read_file(filename):
     with open(filename, 'rb') as fp:
-        print(decode_frame(get_frame(fp)))
+        return decode_frame(get_frame(fp))
 
 
 if __name__ == '__main__':
