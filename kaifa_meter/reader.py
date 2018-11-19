@@ -50,7 +50,7 @@ def read_serial(device_path, callback=None):
 
 
 def read_file(filename):
-    with open("data/dump-2018-11-18T20:27:38.865264.dat", 'rb') as fp:
+    with open(filename, 'rb') as fp:
         print(decode_frame(get_frame(fp)))
 
 
