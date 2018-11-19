@@ -44,7 +44,7 @@ def read_serial(device_path, callback=None):
             frame = get_frame(ser)
             msg = decode_frame(frame)
             if callback is None:
-                print(msg.data.pwr_act_pos.value)
+                print(msg.data.pwr_act_pos.val)
             else:
                 callback(msg)
 
