@@ -1,4 +1,3 @@
-
 import datetime
 import logging
 from serial import Serial, EIGHTBITS, PARITY_EVEN, STOPBITS_ONE

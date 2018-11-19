@@ -1,4 +1,3 @@
-
 import click
 from kaifa_meter.reader import read_serial, read_file
 
