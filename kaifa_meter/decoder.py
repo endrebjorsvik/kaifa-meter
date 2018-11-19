@@ -160,7 +160,7 @@ def decode_frame(frame):
     return msg
 
 if __name__ == '__main__':
-    datapath = pathlib.Path('./dump')
+    datapath = pathlib.Path('../data')
     files = list(datapath.glob('dump-*.dat'))
     for f in files:
         with open(f, 'rb') as fp:
