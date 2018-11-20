@@ -118,7 +118,7 @@ List2ThreePhase = c.Struct(
 )
 
 List3Items = c.Struct(
-    "meter_time" / Timestamp,
+    "meter_ts" / Timestamp,
     "energy_act_pos" / ItemUint32,
     "energy_act_neg" / ItemUint32,
     "energy_react_pos" / ItemUint32,
@@ -141,7 +141,7 @@ List3ThreePhase = c.Struct(
 message = c.Struct(
     "header" / Header,
     "meta" / Meta,
-    "timestamp" / Timestamp,
+    "meter_ts" / Timestamp,
     "items_count" / ItemsCount,
     "data" / c.Switch(c.this.items_count.val, {
         1: List1,
@@ -158,15 +158,27 @@ def decode_frame(frame):
     msg = message.parse(frame)
     return msg
 
+
+def get_field(struct, field):
+    """Attempt to always read the 'val' attribute
+       of the desired field.
+    """
+    v = struct.get(field)
+    try:
+        return v.val
+    except AttributeError:
+        return v
+
+
 if __name__ == '__main__':
-    datapath = pathlib.Path('../data')
+    datapath = pathlib.Path('./data')
     files = list(datapath.glob('dump-*.dat'))
     for f in files:
         with open(f, 'rb') as fp:
             frame = fp.read()
 
         msg = decode_frame(frame)
-        print(f"{msg.timestamp.val}: {msg.data.pwr_act_pos.val} W")
+        print(f"{msg['timestamp']['val']}: {get_field(msg.data, 'pwr_act_pos')} W")
         try:
             print(f"Current: {msg.data.IL1} A")
             print(f"Voltage: {msg.data.ULN1} V")
