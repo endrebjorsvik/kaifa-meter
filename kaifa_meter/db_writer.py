@@ -1,5 +1,6 @@
 import logging
 import psycopg2 as pg
+from kaifa_meter.decoder import get_field
 
 
 def init_table(table, cursor, query):
@@ -53,13 +54,28 @@ class DbWriter:
         init_db(self.dbname, self.dbuser, self.dbtable)
 
     def write(self, msg):
-        fields = (
-            "meter_ts", "obis_version", "meter_id", "meter_type", "items_count",
-            "pwr_act_pos", "pwr_act_neg", "pwr_react_pos", "pwr_react_neg",
-            "il1", "il2", "il3", "uln1", "uln2", "uln3", "meter_ts2",
-            "energy_act_pos", "energy_act_neg", "energy_react_pos", "energy_react_neg"
-        )
-        d = {}
+        d = {
+            "meter_ts": get_field(msg, "meter_ts"),
+            "obis_version": get_field(msg, "obis_version"),
+            "meter_id": get_field(msg, "meter_id"),
+            "meter_type": get_field(msg, "meter_type"),
+            "items_count": get_field(msg, "items_count"),
+            "pwr_act_pos": get_field(msg.data, "pwr_act_pos"),
+            "pwr_act_neg": get_field(msg.data, "pwr_act_neg"),
+            "pwr_react_pos": get_field(msg.data, "pwr_react_pos"),
+            "pwr_react_neg": get_field(msg.data, "pwr_react_neg"),
+            "il1": get_field(msg.data, "il1"),
+            "il2": get_field(msg.data, "il2"),
+            "il3": get_field(msg.data, "il3"),
+            "uln1": get_field(msg.data, "uln1"),
+            "uln2": get_field(msg.data, "uln2"),
+            "uln3": get_field(msg.data, "uln3"),
+            "meter_ts2": get_field(msg.data, "meter_ts"),
+            "energy_act_pos": get_field(msg.data, "energy_act_pos"),
+            "energy_act_neg": get_field(msg.data, "energy_act_neg"),
+            "energy_react_pos": get_field(msg.data, "energy_react_pos"),
+            "energy_react_neg": get_field(msg.data, "energy_react_neg"),
+        }
         q = ("INSERT INTO {} ( "
              "savetime, meter_ts, obis_version, meter_id, meter_type, "
              "items_count, pwr_act_pos, pwr_act_neg, pwr_react_pos, "
