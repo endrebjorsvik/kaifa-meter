@@ -119,10 +119,14 @@ List2ThreePhase = c.Struct(
 
 List3Items = c.Struct(
     "meter_ts" / Timestamp,
-    "energy_act_pos" / ItemUint32,
-    "energy_act_neg" / ItemUint32,
-    "energy_react_pos" / ItemUint32,
-    "energy_react_neg" / ItemUint32,
+    "energy_act_pos_raw" / ItemUint32,
+    "energy_act_pos" / c.Computed(c.this.energy_act_pos_raw.val / 1000),
+    "energy_act_neg_raw" / ItemUint32,
+    "energy_act_neg" / c.Computed(c.this.energy_act_neg_raw.val / 1000),
+    "energy_react_pos_raw" / ItemUint32,
+    "energy_react_pos" / c.Computed(c.this.energy_react_pos_raw.val / 1000),
+    "energy_react_neg_raw" / ItemUint32,
+    "energy_react_neg" / c.Computed(c.this.energy_react_neg_raw.val / 1000),
 )
 
 List3SinglePhase = c.Struct(
