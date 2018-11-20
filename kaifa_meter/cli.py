@@ -1,5 +1,6 @@
 import click
 from kaifa_meter.reader import read_serial, read_file
+from kaifa_meter.db_writer import init_db
 
 
 class FileWriter:
@@ -40,3 +41,11 @@ def parse(file, outfile):
         w.write(msg)
     else:
         print(msg)
+
+
+@cli.command()
+@click.option('--dbname', required=True)
+@click.option('--dbuser', required=True)
+@click.option('--dbtable', required=True)
+def initdb(dbname, dbuser, dbtable):
+    init_db(dbname, dbuser, dbtable)

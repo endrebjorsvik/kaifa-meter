@@ -13,7 +13,9 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/endrebjorsvik/kaifa_meter",
     packages=setuptools.find_packages(),
-    install_requires=['construct>=2.9', 'pyserial', 'Click'],
+    install_requires=[
+        'construct>=2.9', 'pyserial', 'Click', 'psycopg2-binary'
+    ],
     python_requires='>=3.6',
     entry_points={
         'console_scripts': [
