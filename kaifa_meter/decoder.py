@@ -80,53 +80,67 @@ ItemInt32 = c.Struct(
 #  High level data collections
 # #############################
 List1 = c.Struct(
-    "pwr_act_pos" / ItemUint32,
+    "pwr_act_pos_item" / ItemUint32,
+
+    "pwr_act_pos" / c.Computed(c.this.pwr_act_pos_item.val) * "W",
 )
 
 List2Top = c.Struct(
-    "obis_version" / Text,
-    "meter_id" / Text,
-    "meter_type" / Text,
-    "pwr_act_pos" / ItemUint32,
-    "pwr_act_neg" / ItemUint32,
-    "pwr_react_pos" / ItemUint32,
-    "pwr_react_neg" / ItemUint32,
+    "obis_version_item" / Text,
+    "meter_id_item" / Text,
+    "meter_type_item" / Text,
+    "pwr_act_pos_item" / ItemUint32,
+    "pwr_act_neg_item" / ItemUint32,
+    "pwr_react_pos_item" / ItemUint32,
+    "pwr_react_neg_item" / ItemUint32,
+
+    "obis_version" / c.Computed(c.this.obis_version_item.val),
+    "meter_id" / c.Computed(c.this.meter_id_item.val),
+    "meter_type" / c.Computed(c.this.meter_type_item.val),
+    "pwr_act_pos" / c.Computed(c.this.pwr_act_pos_item.val) * "W",
+    "pwr_act_neg" / c.Computed(c.this.pwr_act_neg_item.val) * "W",
+    "pwr_react_pos" / c.Computed(c.this.pwr_react_pos_item.val) * "VAr",
+    "pwr_react_neg" / c.Computed(c.this.pwr_react_neg_item.val) * "VAr",
 )
 
 List2SinglePhase = c.Struct(
     c.Embedded(List2Top),
-    "IL1_raw" / ItemInt32,
-    "IL1" / c.Computed(c.this.IL1_raw.val / 1000),
-    "ULN1_raw" / ItemUint32,
-    "ULN1" / c.Computed(c.this.ULN1_raw.val / 10),
+    "IL1_item" / ItemInt32,
+    "ULN1_item" / ItemUint32,
+
+    "IL1" / c.Computed(c.this.IL1_item.val / 1000) * "A",
+    "ULN1" / c.Computed(c.this.ULN1_item.val / 10) * "V",
 )
 
 List2ThreePhase = c.Struct(
     c.Embedded(List2Top),
-    "IL1_raw" / ItemInt32,
-    "IL1" / c.Computed(c.this.IL1_raw.val / 1000),
-    "IL2_raw" / ItemInt32,
-    "IL2" / c.Computed(c.this.IL2_raw.val / 1000),
-    "IL3_raw" / ItemInt32,
-    "IL3" / c.Computed(c.this.IL3_raw.val / 1000),
-    "ULN1_raw" / ItemUint32,
-    "ULN1" / c.Computed(c.this.ULN1_raw.val / 10),
-    "ULN2_raw" / ItemUint32,
-    "ULN2" / c.Computed(c.this.ULN2_raw.val / 10),
-    "ULN3_raw" / ItemUint32,
-    "ULN3" / c.Computed(c.this.ULN3_raw.val / 10),
+    "IL1_item" / ItemInt32,
+    "IL2_item" / ItemInt32,
+    "IL3_item" / ItemInt32,
+    "ULN1_item" / ItemUint32,
+    "ULN2_item" / ItemUint32,
+    "ULN3_item" / ItemUint32,
+
+    "IL1" / c.Computed(c.this.IL1_item.val / 1000) * "A",
+    "IL2" / c.Computed(c.this.IL2_item.val / 1000) * "A",
+    "IL3" / c.Computed(c.this.IL3_item.val / 1000) * "A",
+    "ULN1" / c.Computed(c.this.ULN1_item.val / 10) * "V",
+    "ULN2" / c.Computed(c.this.ULN2_item.val / 10) * "V",
+    "ULN3" / c.Computed(c.this.ULN3_item.val / 10) * "V",
 )
 
 List3Items = c.Struct(
-    "meter_ts" / Timestamp,
-    "energy_act_pos_raw" / ItemUint32,
-    "energy_act_pos" / c.Computed(c.this.energy_act_pos_raw.val / 1000),
-    "energy_act_neg_raw" / ItemUint32,
-    "energy_act_neg" / c.Computed(c.this.energy_act_neg_raw.val / 1000),
-    "energy_react_pos_raw" / ItemUint32,
-    "energy_react_pos" / c.Computed(c.this.energy_react_pos_raw.val / 1000),
-    "energy_react_neg_raw" / ItemUint32,
-    "energy_react_neg" / c.Computed(c.this.energy_react_neg_raw.val / 1000),
+    "meter_ts_item" / Timestamp,
+    "energy_act_pos_item" / ItemUint32,
+    "energy_act_neg_item" / ItemUint32,
+    "energy_react_pos_item" / ItemUint32,
+    "energy_react_neg_item" / ItemUint32,
+
+    "meter_ts" / c.Computed(c.this.meter_ts_item.val),
+    "energy_act_pos" / c.Computed(c.this.energy_act_pos_item.val) * "Wh",
+    "energy_act_neg" / c.Computed(c.this.energy_act_neg_item.val) * "Wh",
+    "energy_react_pos" / c.Computed(c.this.energy_react_pos_item.val) * "VArh",
+    "energy_react_neg" / c.Computed(c.this.energy_react_neg_item.val) * "VArh",
 )
 
 List3SinglePhase = c.Struct(
@@ -145,9 +159,11 @@ List3ThreePhase = c.Struct(
 message = c.Struct(
     "header" / Header,
     "meta" / Meta,
-    "meter_ts" / Timestamp,
-    "items_count" / ItemsCount,
-    "data" / c.Switch(c.this.items_count.val, {
+    "meter_ts_item" / Timestamp,
+    "meter_ts" / c.Computed(c.this.meter_ts_item.val),
+    "items_count_item" / ItemsCount,
+    "items_count" / c.Computed(c.this.items_count_item.val),
+    "data" / c.Switch(c.this.items_count, {
         1: List1,
         9: List2SinglePhase,
         13: List2ThreePhase,
@@ -163,17 +179,6 @@ def decode_frame(frame):
     return msg
 
 
-def get_field(struct, field):
-    """Attempt to always read the 'val' attribute
-       of the desired field.
-    """
-    v = struct.get(field)
-    try:
-        return v.val
-    except AttributeError:
-        return v
-
-
 if __name__ == '__main__':
     datapath = pathlib.Path('./data')
     files = list(datapath.glob('dump-*.dat'))
@@ -182,10 +187,11 @@ if __name__ == '__main__':
             frame = fp.read()
 
         msg = decode_frame(frame)
-        print(f"{msg['timestamp']['val']}: {get_field(msg.data, 'pwr_act_pos')} W")
+        print(msg)
+        print(f"{msg['meter_ts']}: {msg.data.pwr_act_pos} W")
         try:
             print(f"Current: {msg.data.IL1} A")
             print(f"Voltage: {msg.data.ULN1} V")
-            print(f"Reactive: {msg.data.pwr_react_neg.val} VAr")
+            print(f"Reactive: {msg.data.pwr_react_neg} VAr")
         except AttributeError:
             pass

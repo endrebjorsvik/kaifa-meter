@@ -1,6 +1,5 @@
 import logging
 import psycopg2 as pg
-from kaifa_meter.decoder import get_field
 
 
 def init_table(table, cursor, query):
@@ -55,26 +54,26 @@ class DbWriter:
 
     def write(self, msg):
         d = {
-            "meter_ts": get_field(msg, "meter_ts"),
-            "obis_version": get_field(msg.data, "obis_version"),
-            "meter_id": get_field(msg.data, "meter_id"),
-            "meter_type": get_field(msg.data, "meter_type"),
-            "items_count": get_field(msg.data, "items_count"),
-            "pwr_act_pos": get_field(msg.data, "pwr_act_pos"),
-            "pwr_act_neg": get_field(msg.data, "pwr_act_neg"),
-            "pwr_react_pos": get_field(msg.data, "pwr_react_pos"),
-            "pwr_react_neg": get_field(msg.data, "pwr_react_neg"),
-            "il1": get_field(msg.data, "IL1"),
-            "il2": get_field(msg.data, "IL2"),
-            "il3": get_field(msg.data, "IL3"),
-            "uln1": get_field(msg.data, "ULN1"),
-            "uln2": get_field(msg.data, "ULN2"),
-            "uln3": get_field(msg.data, "ULN3"),
-            "meter_ts2": get_field(msg.data, "meter_ts"),
-            "energy_act_pos": get_field(msg.data, "energy_act_pos"),
-            "energy_act_neg": get_field(msg.data, "energy_act_neg"),
-            "energy_react_pos": get_field(msg.data, "energy_react_pos"),
-            "energy_react_neg": get_field(msg.data, "energy_react_neg"),
+            "meter_ts": msg.get("meter_ts"),
+            "obis_version": msg.data.get("obis_version"),
+            "meter_id": msg.data.get("meter_id"),
+            "meter_type": msg.data.get("meter_type"),
+            "items_count": msg.get("items_count"),
+            "pwr_act_pos": msg.data.get("pwr_act_pos"),
+            "pwr_act_neg": msg.data.get("pwr_act_neg"),
+            "pwr_react_pos": msg.data.get("pwr_react_pos"),
+            "pwr_react_neg": msg.data.get("pwr_react_neg"),
+            "il1": msg.data.get("IL1"),
+            "il2": msg.data.get("IL2"),
+            "il3": msg.data.get("IL3"),
+            "uln1": msg.data.get("ULN1"),
+            "uln2": msg.data.get("ULN2"),
+            "uln3": msg.data.get("ULN3"),
+            "meter_ts2": msg.data.get("meter_ts"),
+            "energy_act_pos": msg.data.get("energy_act_pos"),
+            "energy_act_neg": msg.data.get("energy_act_neg"),
+            "energy_react_pos": msg.data.get("energy_react_pos"),
+            "energy_react_neg": msg.data.get("energy_react_neg"),
         }
         q = ("INSERT INTO {} ( "
              "savetime, meter_ts, obis_version, meter_id, meter_type, "
