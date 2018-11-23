@@ -16,6 +16,8 @@ class FileWriter:
 
 @click.group()
 def cli():
+    """Command line tool that reads, parses and stores
+       measurement data from Kaifa electricity meters."""
     pass
 
 
@@ -26,6 +28,12 @@ def cli():
 @click.option('--dbuser', help="Username for database.", default='')
 @click.option('--dbtable', help="Table to use in database.", default='')
 def serial(device, outfile, dbname, dbuser, dbtable):
+    """Read data from serial device (TTY, UART, etc.).
+
+       Write processed data to file if outfile is specified.
+       Write to database if database is specified. Defaults to
+       terminal output.
+    """
     callback = None
     if outfile is not None:
         w = FileWriter(outfile)
@@ -44,7 +52,13 @@ def serial(device, outfile, dbname, dbuser, dbtable):
 @click.option('--dbuser', help="Username for database.", default='')
 @click.option('--dbtable', help="Table to use in database.", default='')
 @click.pass_context
-def parse(ctx, file, outfile, dbname, dbuser, dbtable):
+def parse_file(ctx, file, outfile, dbname, dbuser, dbtable):
+    """Read data from an already captured file.
+
+       Write processed data to file if outfile is specified.
+       Write to database if database is specified. Defaults to
+       terminal output.
+    """
     msg = read_file(file)
     if outfile is not None:
         w = FileWriter(outfile)
@@ -61,4 +75,5 @@ def parse(ctx, file, outfile, dbname, dbuser, dbtable):
 @click.option('--dbuser', required=True)
 @click.option('--dbtable', required=True)
 def initdb(dbname, dbuser, dbtable):
+    """Initialise database that will store measurement data."""
     init_db(dbname, dbuser, dbtable)
