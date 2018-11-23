@@ -4,7 +4,7 @@
 
 This is a Python package that reads and decodes serial data from the HAN port of a few Kaifa electricity meters. It may be used as a Python library or as a standalone CLI.
 
-Serial data frame decoding is fairly naive and based on inspiration from [roarfred](https://github.com/roarfred) and [Per Erik Nordbø](https://drive.google.com/drive/folders/0B3ZvFI0Dg1TDbDBzMU02cnU0Y28). It uses the [Construct](https://construct.readthedocs.io/en/latest/index.html) library to parse the messages in a simple and straight-forward manner that can easily be understood.
+Serial data frame decoding is fairly naive and based on inspiration from [roarfred](https://github.com/roarfred) and [Per Erik Nordbø](https://drive.google.com/drive/folders/0B3ZvFI0Dg1TDbDBzMU02cnU0Y28). It uses the [Construct](https://construct.readthedocs.io/en/latest/index.html) library to parse the messages in a simple and straight-forward manner that can easily be understood and maintained.
 
 The CLI writes decoded data to either:
 
@@ -33,7 +33,7 @@ This package requires Python 3.6+. It depends on several third party packages, s
 
 ## Usage
 
-Connect the electricity meter to your computer using an M-Bus-to-USB converter. It shall appear as a serial port (e.g. `/dev/ttyUSB0` or `COM3`). To print decoded data to your terminal, run
+Connect the electricity meter to a computer using an M-Bus-to-USB converter. It shall appear as a serial port (e.g. `/dev/ttyUSB0` or `COM3`). To print decoded data to your terminal, run
 
     $ kaifa_meter serial /dev/ttyUSB0
 
