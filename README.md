@@ -4,7 +4,7 @@
 
 This is a Python package that reads and decodes serial data from the HAN port of a few Kaifa electricity meters. It may be used as a Python library or as a standalone CLI.
 
-Serial data frame decoding is fairly naive and based on inspiration from [roarfred](https://github.com/roarfred) and [Per Erik Nordbø](https://drive.google.com/drive/folders/0B3ZvFI0Dg1TDbDBzMU02cnU0Y28). It uses the [Construct](https://construct.readthedocs.io/en/latest/index.html) library to parse the messages in a simple and straight-forward manner that can easily be understood and maintained.
+Serial data frame decoding is fairly naive and based on inspiration from [roarfred](https://github.com/roarfred) and [Per Erik Nordbø](https://drive.google.com/drive/folders/0B3ZvFI0Dg1TDbDBzMU02cnU0Y28). It uses the [Construct](https://construct.readthedocs.io/en/latest/index.html) library to parse messages in a simple and straight-forward manner that is easily understood and maintainable.
 
 The CLI writes decoded data to either:
 
@@ -27,13 +27,13 @@ Feedback and improvement suggestions are welcome.
 
 ## Installation
 
-This package requires Python 3.6+. It depends on several third party packages, so I recommend installing the package in a [virtualenv](https://virtualenv.pypa.io/en/latest/). It is packaged to be installed through [pip](https://pip.pypa.io/en/stable/) from GitHub.
+This package requires Python 3.6+. It depends on several third party packages, so I recommend installing it in a [virtualenv](https://virtualenv.pypa.io/en/latest/). It is packaged to be installed through [pip](https://pip.pypa.io/en/stable/) from GitHub.
 
     $ pip install git+https://github.com/endrebjorsvik/kaifa-meter.git
 
 ## Usage
 
-Connect the electricity meter to a computer using an M-Bus-to-USB converter. It shall appear as a serial port (e.g. `/dev/ttyUSB0` or `COM3`). To print decoded data to your terminal, run
+Connect the electricity meter to a computer using a M-Bus-to-USB converter. It shall appear as a serial port (e.g. `/dev/ttyUSB0` or `COM3`). To print decoded data to your terminal, run
 
     $ kaifa_meter serial /dev/ttyUSB0
 
