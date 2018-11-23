@@ -156,7 +156,7 @@ List3ThreePhase = c.Struct(
 # #####################
 #  Top level message
 # #####################
-message = c.Struct(
+Message = c.Struct(
     "header" / Header,
     "meta" / Meta,
     "meter_ts_item" / Timestamp,
@@ -175,7 +175,7 @@ message = c.Struct(
 
 
 def decode_frame(frame):
-    msg = message.parse(frame)
+    msg = Message.parse(frame)
     return msg
 
 
