@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="kaifa_meter",
-    version="0.0.1",
+    version="0.1.0",
     author="Endre Bjørsvik",
     author_email="endrebjorsvik@gmail.com",
     description="Utility for reading HAN data from Kaifa electriciy meters.",
