@@ -11,7 +11,7 @@ setuptools.setup(
     description="Utility for reading HAN data from Kaifa electriciy meters.",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/endrebjorsvik/kaifa_meter",
+    url="https://github.com/endrebjorsvik/kaifa-meter",
     packages=setuptools.find_packages(),
     install_requires=[
         'construct>=2.9', 'pyserial', 'Click', 'psycopg2-binary'
