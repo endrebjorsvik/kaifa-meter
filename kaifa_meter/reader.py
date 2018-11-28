@@ -40,8 +40,18 @@ def read_serial(device_path, callback=None):
     with Serial(device_path, 2400, bytesize=EIGHTBITS, parity=PARITY_EVEN,
                 stopbits=STOPBITS_ONE) as ser:
         while True:
-            frame = get_frame(ser)
-            msg = decode_frame(frame)
+            try:
+                frame = get_frame(ser)
+            except Exception as e:
+                logging.error(f"Unexpected error while reading frame. Exception: {e}")
+                continue
+
+            try:
+                msg = decode_frame(frame)
+            except Exception as e:
+                logging.error(f"Could not decode frame: {frame}. Exception: {e}")
+                continue
+
             if callback is None:
                 print(msg.data.pwr_act_pos.val)
             else:
