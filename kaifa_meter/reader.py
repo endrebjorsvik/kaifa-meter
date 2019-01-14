@@ -53,7 +53,7 @@ def read_serial(device_path, callback=None):
                 continue
 
             if callback is None:
-                print(msg.data.pwr_act_pos.val)
+                print(msg.data.pwr_act_pos)
             else:
                 callback(msg)
 
