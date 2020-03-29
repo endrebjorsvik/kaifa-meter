@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0]
+
 ### Changed
 
 - Move some IV and energy data fields from `data` struct to other nested
@@ -19,6 +21,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Initial release. Minimum viable parser and database storage.
 
-[Unreleased]: https://github.com/endrebjorsvik/kaifa-meter/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/endrebjorsvik/kaifa-meter/compare/v2.0.0...HEAD
+[2.0.0]: https://github.com/endrebjorsvik/kaifa-meter/releases/tag/v2.0.0
 [1.0.0]: https://github.com/endrebjorsvik/kaifa-meter/releases/tag/v1.0.0
-
