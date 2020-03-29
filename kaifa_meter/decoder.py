@@ -85,7 +85,7 @@ List1 = c.Struct(
     "pwr_act_pos" / c.Computed(c.this.pwr_act_pos_item.val) * "W",
 )
 
-List2Top = c.Struct(
+List2Head = c.Struct(
     "obis_version_item" / Text,
     "meter_id_item" / Text,
     "meter_type_item" / Text,
@@ -104,7 +104,6 @@ List2Top = c.Struct(
 )
 
 List2SinglePhase = c.Struct(
-    c.Embedded(List2Top),
     "IL1_item" / ItemInt32,
     "ULN1_item" / ItemUint32,
 
@@ -113,7 +112,6 @@ List2SinglePhase = c.Struct(
 )
 
 List2ThreePhase = c.Struct(
-    c.Embedded(List2Top),
     "IL1_item" / ItemInt32,
     "IL2_item" / ItemInt32,
     "IL3_item" / ItemInt32,
@@ -129,28 +127,18 @@ List2ThreePhase = c.Struct(
     "ULN3" / c.Computed(c.this.ULN3_item.val / 10) * "V",
 )
 
-List3Items = c.Struct(
+List3Energy = c.Struct(
     "meter_ts_item" / Timestamp,
-    "energy_act_pos_item" / ItemUint32,
-    "energy_act_neg_item" / ItemUint32,
-    "energy_react_pos_item" / ItemUint32,
-    "energy_react_neg_item" / ItemUint32,
+    "act_pos_item" / ItemUint32,
+    "act_neg_item" / ItemUint32,
+    "react_pos_item" / ItemUint32,
+    "react_neg_item" / ItemUint32,
 
     "meter_ts" / c.Computed(c.this.meter_ts_item.val),
-    "energy_act_pos" / c.Computed(c.this.energy_act_pos_item.val) * "Wh",
-    "energy_act_neg" / c.Computed(c.this.energy_act_neg_item.val) * "Wh",
-    "energy_react_pos" / c.Computed(c.this.energy_react_pos_item.val) * "VArh",
-    "energy_react_neg" / c.Computed(c.this.energy_react_neg_item.val) * "VArh",
-)
-
-List3SinglePhase = c.Struct(
-    c.Embedded(List2SinglePhase),
-    c.Embedded(List3Items),
-)
-
-List3ThreePhase = c.Struct(
-    c.Embedded(List2ThreePhase),
-    c.Embedded(List3Items),
+    "act_pos" / c.Computed(c.this.act_pos_item.val) * "Wh",
+    "act_neg" / c.Computed(c.this.act_neg_item.val) * "Wh",
+    "react_pos" / c.Computed(c.this.react_pos_item.val) * "VArh",
+    "react_neg" / c.Computed(c.this.react_neg_item.val) * "VArh",
 )
 
 # #####################
@@ -165,11 +153,21 @@ Message = c.Struct(
     "items_count" / c.Computed(c.this.items_count_item.val),
     "data" / c.Switch(c.this.items_count, {
         1: List1,
+        9: List2Head,
+        13: List2Head,
+        14: List2Head,
+        18: List2Head,
+    }),
+    "data_iv" / c.Switch(c.this.items_count, {
         9: List2SinglePhase,
         13: List2ThreePhase,
-        14: List3SinglePhase,
-        18: List3ThreePhase,
-    }),
+        14: List2SinglePhase,
+        18: List2ThreePhase,
+    }, default=c.Struct()),
+    "data_energy" / c.Switch(c.this.items_count, {
+        14: List3Energy,
+        18: List3Energy,
+    }, default=c.Struct()),
     "footer" / Footer,
 )
 
@@ -189,9 +187,8 @@ if __name__ == '__main__':
         msg = decode_frame(frame)
         print(msg)
         print(f"{msg['meter_ts']}: {msg.data.pwr_act_pos} W")
-        try:
-            print(f"Current: {msg.data.IL1} A")
-            print(f"Voltage: {msg.data.ULN1} V")
-            print(f"Reactive: {msg.data.pwr_react_neg} VAr")
-        except AttributeError:
-            pass
+        print(f"Reactive: {msg.data.get('pwr_react_neg')} VAr")
+        print(f"Current: {msg.data_iv.get('IL1')} A")
+        print(f"Voltage: {msg.data_iv.get('ULN1')} V")
+        print(f"Energy: {msg.data_energy.get('act_pos')} VAr")
+        print("")
