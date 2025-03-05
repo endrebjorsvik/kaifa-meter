@@ -1,4 +1,3 @@
-import json
 import pathlib
 import construct as c
 import datetime
@@ -10,10 +9,11 @@ FrameInfo = c.BitStruct(
 )
 
 Header = c.Struct(
-    "start_tag" / c.Const(b'\x7e'),
+    "start_tag" / c.Const(b"\x7e"),
     "frame_info" / FrameInfo,
     "dest_addr" / c.Int8ub,  # TODO: Proper parsing. Not static.
-    "src_addr" / c.Struct(  # TODO: Proper parsing. Not static.
+    "src_addr"
+    / c.Struct(  # TODO: Proper parsing. Not static.
         c.Int8ub,
         c.Int8ub,
     ),
@@ -30,7 +30,7 @@ Meta = c.Struct(
 
 Footer = c.Struct(
     "fcs" / c.Bytes(2),  # TODO: Verify checksum
-    "end_tag" / c.Const(b'\x7e'),
+    "end_tag" / c.Const(b"\x7e"),
 )
 
 
@@ -38,7 +38,7 @@ Footer = c.Struct(
 #  Data types
 # ########################
 Timestamp = c.Struct(
-    "item_type" / c.Const(b'\x09'),
+    "item_type" / c.Const(b"\x09"),
     "item_length" / c.Int8ub,
     "year" / c.Int16ub,
     "month" / c.Int8ub,
@@ -48,30 +48,35 @@ Timestamp = c.Struct(
     "minute" / c.Int8ub,
     "second" / c.Int8ub,
     c.Bytes(4),
-    "val" / c.Computed(lambda ctx: datetime.datetime(
-        ctx.year, ctx.month, ctx.day,
-        ctx.hour, ctx.minute, ctx.second
-    )),
+    "val"
+    / c.Computed(
+        lambda ctx: datetime.datetime(
+            ctx.year, ctx.month, ctx.day, ctx.hour, ctx.minute, ctx.second
+        )
+    ),
 )
 
 ItemsCount = c.Struct(
-    "item_type" / c.Const(b'\x02'),
+    "item_type" / c.Const(b"\x02"),
     "val" / c.Int8ub,
 )
 
 Text = c.Struct(
-    "item_type" / c.Const(b'\x09'),
+    "item_type" / c.Const(b"\x09"),
     "item_length" / c.Int8ub,
-    "val" / c.PaddedString(c.this.item_length, 'utf8'),
+    "val" / c.PaddedString(c.this.item_length, "utf8"),
 )
 
 ItemUint32 = c.Struct(
-    "item_type" / c.Const(b'\x06'),
+    "item_type" / c.Const(b"\x06"),
     "val" / c.Int32ub,
 )
 
 ItemInt32 = c.Struct(
-    "item_type" / c.Const(b'\x06'),  # TODO: This looks odd, but Kaifa states that Current is signed.
+    "item_type"
+    / c.Const(
+        b"\x06"
+    ),  # TODO: This looks odd, but Kaifa states that Current is signed.
     "val" / c.Int32sb,
 )
 
@@ -81,7 +86,6 @@ ItemInt32 = c.Struct(
 # #############################
 List1 = c.Struct(
     "pwr_act_pos_item" / ItemUint32,
-
     "pwr_act_pos" / c.Computed(c.this.pwr_act_pos_item.val) * "W",
 )
 
@@ -93,7 +97,6 @@ List2Head = c.Struct(
     "pwr_act_neg_item" / ItemUint32,
     "pwr_react_pos_item" / ItemUint32,
     "pwr_react_neg_item" / ItemUint32,
-
     "obis_version" / c.Computed(c.this.obis_version_item.val),
     "meter_id" / c.Computed(c.this.meter_id_item.val),
     "meter_type" / c.Computed(c.this.meter_type_item.val),
@@ -106,7 +109,6 @@ List2Head = c.Struct(
 List2SinglePhase = c.Struct(
     "IL1_item" / ItemInt32,
     "ULN1_item" / ItemUint32,
-
     "IL1" / c.Computed(c.this.IL1_item.val / 1000) * "A",
     "ULN1" / c.Computed(c.this.ULN1_item.val / 10) * "V",
 )
@@ -118,7 +120,6 @@ List2ThreePhase = c.Struct(
     "ULN1_item" / ItemUint32,
     "ULN2_item" / ItemUint32,
     "ULN3_item" / ItemUint32,
-
     "IL1" / c.Computed(c.this.IL1_item.val / 1000) * "A",
     "IL2" / c.Computed(c.this.IL2_item.val / 1000) * "A",
     "IL3" / c.Computed(c.this.IL3_item.val / 1000) * "A",
@@ -133,7 +134,6 @@ List3Energy = c.Struct(
     "act_neg_item" / ItemUint32,
     "react_pos_item" / ItemUint32,
     "react_neg_item" / ItemUint32,
-
     "meter_ts" / c.Computed(c.this.meter_ts_item.val),
     "act_pos" / c.Computed(c.this.act_pos_item.val) * "Wh",
     "act_neg" / c.Computed(c.this.act_neg_item.val) * "Wh",
@@ -151,42 +151,59 @@ Message = c.Struct(
     "meter_ts" / c.Computed(c.this.meter_ts_item.val),
     "items_count_item" / ItemsCount,
     "items_count" / c.Computed(c.this.items_count_item.val),
-    "data" / c.Switch(c.this.items_count, {
-        1: List1,
-        9: List2Head,
-        13: List2Head,
-        14: List2Head,
-        18: List2Head,
-    }),
-    "data_iv" / c.Switch(c.this.items_count, {
-        9: List2SinglePhase,
-        13: List2ThreePhase,
-        14: List2SinglePhase,
-        18: List2ThreePhase,
-    }, default=c.Struct()),
-    "data_energy" / c.Switch(c.this.items_count, {
-        14: List3Energy,
-        18: List3Energy,
-    }, default=c.Struct()),
+    "data"
+    / c.Switch(
+        c.this.items_count,
+        {
+            1: List1,
+            9: List2Head,
+            13: List2Head,
+            14: List2Head,
+            18: List2Head,
+        },
+    ),
+    "data_iv"
+    / c.Switch(
+        c.this.items_count,
+        {
+            9: List2SinglePhase,
+            13: List2ThreePhase,
+            14: List2SinglePhase,
+            18: List2ThreePhase,
+        },
+        default=c.Struct(),
+    ),
+    "data_energy"
+    / c.Switch(
+        c.this.items_count,
+        {
+            14: List3Energy,
+            18: List3Energy,
+        },
+        default=c.Struct(),
+    ),
     "footer" / Footer,
 )
 
+DecodedFrame = c.Container[c.Struct]
 
-def decode_frame(frame):
+
+def decode_frame(frame: bytes) -> DecodedFrame:
     msg = Message.parse(frame)
+    # if not isinstance(msg, c.Container):
+    #     raise RuntimeError(f"Unexpected parsed type: {type(msg)}.")
     return msg
 
 
-if __name__ == '__main__':
-    datapath = pathlib.Path('./data')
-    files = list(datapath.glob('dump-*.dat'))
+if __name__ == "__main__":
+    datapath = pathlib.Path("./data")
+    files = list(datapath.glob("dump-*.dat"))
     for f in files:
-        with open(f, 'rb') as fp:
-            frame = fp.read()
+        frame = f.read_bytes()
 
         msg = decode_frame(frame)
         print(msg)
-        print(f"{msg['meter_ts']}: {msg.data.pwr_act_pos} W")
+        print(f"{msg.meter_ts}: {msg.data.pwr_act_pos} W")
         print(f"Reactive: {msg.data.get('pwr_react_neg')} VAr")
         print(f"Current: {msg.data_iv.get('IL1')} A")
         print(f"Voltage: {msg.data_iv.get('ULN1')} V")
