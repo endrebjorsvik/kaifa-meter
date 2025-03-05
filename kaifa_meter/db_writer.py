@@ -1,11 +1,12 @@
 import logging
 from typing import Any
-import psycopg2 as pg
+import psycopg as pg
+from psycopg import sql
 
 from kaifa_meter import decoder
 
 
-def init_table(table: str, cursor, query: str):
+def init_table(table: str, cursor: pg.Cursor, query: sql.Composed):
     cursor.execute(
         "SELECT EXISTS(SELECT 1 FROM pg_tables WHERE tablename = %s);", (table,)
     )
@@ -17,7 +18,7 @@ def init_table(table: str, cursor, query: str):
 
 
 def init_db(dbname: str, dbuser: str, dbtable: str):
-    table = (
+    table = sql.SQL(
         "CREATE TABLE {} ( "
         "id serial primary key, "
         "savetime timestamptz, "
@@ -40,8 +41,8 @@ def init_db(dbname: str, dbuser: str, dbtable: str):
         "energy_act_pos double precision, "
         "energy_act_neg double precision, "
         "energy_react_pos double precision, "
-        "energy_react_neg double precision);".format(dbtable)
-    )
+        "energy_react_neg double precision);"
+    ).format(sql.Identifier(dbtable))
     with pg.connect(dbname=dbname, user=dbname) as conn:
         with conn.cursor() as cur:
             init_table(dbtable, cur, table)
@@ -81,7 +82,7 @@ class DbWriter:
             "energy_react_pos": msg.data_energy.get("react_pos"),
             "energy_react_neg": msg.data_energy.get("react_neg"),
         }
-        q = (
+        q = sql.SQL(
             "INSERT INTO {} ( "
             "savetime, meter_ts, obis_version, meter_id, meter_type, "
             "items_count, pwr_act_pos, pwr_act_neg, pwr_react_pos, "
@@ -93,8 +94,9 @@ class DbWriter:
             "%(pwr_react_pos)s, %(pwr_react_neg)s, %(il1)s, %(il2)s, %(il3)s, "
             "%(uln1)s, %(uln2)s, %(uln3)s, %(meter_ts2)s, %(energy_act_pos)s, "
             "%(energy_act_neg)s, %(energy_react_pos)s, %(energy_react_neg)s"
-            ");".format(self.dbtable)
-        )
+            ");"
+        ).format(sql.Identifier(self.dbtable))
+
         with pg.connect(dbname=self.dbname, user=self.dbuser) as conn:
             with conn.cursor() as cur:
                 cur.execute(q, d)

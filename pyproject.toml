@@ -14,7 +14,7 @@ dependencies = [
     "construct-typing",
     "pyserial",
     "Click",
-    "psycopg2-binary",
+    "psycopg[binary]",
 ]
 requires-python = ">=3.6"
 license = "GPL-3.0-only"
