@@ -18,7 +18,7 @@ dependencies = [
 ]
 requires-python = ">=3.12"
 license = "GPL-3.0-only"
-license-files = ["LICENCSE"]
+license-files = ["LICENSE"]
 
 classifiers = [
     "Programming Language :: Python :: 3.12",
