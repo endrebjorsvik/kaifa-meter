@@ -16,6 +16,7 @@ dependencies = [
     "Click",
     "psycopg[binary]",
     "ruff>=0.17.6",
+    "pytest>=9.2.0",
 ]
 requires-python = ">=3.12"
 license = "GPL-3.0-only"
