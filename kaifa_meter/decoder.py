@@ -1,6 +1,10 @@
-import pathlib
+import logging
+from datetime import datetime
+from pathlib import Path
+
 import construct as c
-import datetime
+
+logger = logging.getLogger(__name__)
 
 FrameInfo = c.BitStruct(
     "frame_format" / c.Bit[4],
@@ -50,7 +54,7 @@ Timestamp = c.Struct(
     c.Bytes(4),
     "val"
     / c.Computed(
-        lambda ctx: datetime.datetime(
+        lambda ctx: datetime(
             ctx.year, ctx.month, ctx.day, ctx.hour, ctx.minute, ctx.second
         )
     ),
@@ -185,27 +189,23 @@ Message = c.Struct(
     "footer" / Footer,
 )
 
-DecodedFrame = c.Container[c.Struct]
+type DecodedFrame = c.Container[c.Struct]
 
 
 def decode_frame(frame: bytes) -> DecodedFrame:
-    msg = Message.parse(frame)
-    # if not isinstance(msg, c.Container):
-    #     raise RuntimeError(f"Unexpected parsed type: {type(msg)}.")
-    return msg
+    """Decode raw bytes into a parsed Kaifa meter frame."""
+    return Message.parse(frame)
 
 
 if __name__ == "__main__":
-    datapath = pathlib.Path("./data")
-    files = list(datapath.glob("dump-*.dat"))
-    for f in files:
-        frame = f.read_bytes()
-
+    datapath = Path("./data")
+    for file in sorted(datapath.glob("dump-*.dat")):
+        frame = file.read_bytes()
         msg = decode_frame(frame)
         print(msg)
         print(f"{msg.meter_ts}: {msg.data.pwr_act_pos} W")
         print(f"Reactive: {msg.data.get('pwr_react_neg')} VAr")
         print(f"Current: {msg.data_iv.get('IL1')} A")
         print(f"Voltage: {msg.data_iv.get('ULN1')} V")
-        print(f"Energy: {msg.data_energy.get('act_pos')} VAr")
-        print("")
+        print(f"Energy: {msg.data_energy.get('act_pos')} Wh")
+        print()
