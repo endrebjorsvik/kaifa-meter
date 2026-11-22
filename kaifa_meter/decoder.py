@@ -1,10 +1,164 @@
 import logging
+from collections.abc import Callable
 from datetime import datetime
 from pathlib import Path
+from typing import TYPE_CHECKING, Any, override
 
 import construct as c
 
+if TYPE_CHECKING:
+    ChecksumBase = c.Construct[bytes, bytes]
+    AddressContainer = c.Container[bytes | int | None]
+    AdapterBase = c.Adapter[list[int], list[int], AddressContainer, int]
+else:
+    ChecksumBase = c.Construct
+    AdapterBase = c.Adapter
+    AddressContainer = c.Container
+
+
 logger = logging.getLogger(__name__)
+
+
+def _generate_crc_table() -> tuple[int, ...]:
+    table: list[int] = []
+    for i in range(256):
+        curr = i
+        for _ in range(8):
+            if curr & 1:
+                curr = (curr >> 1) ^ 0x8408
+            else:
+                curr >>= 1
+        table.append(curr)
+    return tuple(table)
+
+
+CRC16_TABLE = _generate_crc_table()
+
+
+def crc16_hdlc(data: bytes) -> bytes:
+    """Compute 16-bit HDLC Frame Check Sequence (CRC-16-CCITT) in little-endian byte order."""
+    crc = 0xFFFF
+    for byte in data:
+        crc = (crc >> 8) ^ CRC16_TABLE[(crc ^ byte) & 0xFF]
+    return (crc ^ 0xFFFF).to_bytes(2, "little")
+
+
+class FrameChecksum(ChecksumBase):
+    """Construct field verifying HDLC CRC-16 checksum over a stream byte slice."""
+
+    def __init__(
+        self,
+        start_offset_func: Callable[[c.Container[Any]], int],
+        name: str,
+    ) -> None:
+        super().__init__()
+        self.start_offset_func = start_offset_func
+        self.name = name
+        self.flagbuildnone = True
+
+    @override
+    def _parse(self, stream: Any, context: c.Container[Any], path: str) -> bytes:
+        current_offset = c.stream_tell(stream, path)
+        start_offset = self.start_offset_func(context)
+        c.stream_seek(stream, start_offset, 0, path)
+        data = c.stream_read(stream, current_offset - start_offset, path)
+        c.stream_seek(stream, current_offset, 0, path)
+        expected_crc = crc16_hdlc(data)
+        read_crc = c.stream_read(stream, 2, path)
+        if read_crc != expected_crc:
+            raise c.ChecksumError(
+                f"{self.name} mismatch: read {read_crc.hex()}, expected {expected_crc.hex()}",
+                path=path,
+            )
+        return read_crc
+
+    @override
+    def _build(  # type: ignore
+        self, obj: Any, stream: Any, context: c.Container[Any], path: str
+    ) -> bytes:
+        raise NotImplementedError()
+        if obj is not None and isinstance(obj, (bytes, bytearray)) and len(obj) == 2:
+            crc = bytes(obj)
+        else:
+            current_offset = c.stream_tell(stream, path)
+            start_offset = self.start_offset_func(context)
+            c.stream_seek(stream, start_offset, 0, path)
+            data = c.stream_read(stream, current_offset - start_offset, path)
+            c.stream_seek(stream, current_offset, 0, path)
+            crc = crc16_hdlc(data)
+        c.stream_write(stream, crc, 2, path)
+        return crc
+
+    def _sizeof(self, context: c.Container[Any], path: str) -> int:
+        return 2
+
+
+class HdlcAddressAdapter(AdapterBase):
+    """Adapter for HDLC variable-length address field (1, 2, or 4 octets).
+
+    In HDLC (ISO 13239 / IEC 62056-46), the least significant bit (bit 0) of each
+    octet indicates whether another octet follows (0 = extension, 1 = final octet).
+    """
+
+    @override
+    def _decode(
+        self, obj: list[int], context: c.Container[Any], path: str
+    ) -> AddressContainer:
+        if not (1 <= len(obj) <= 4):
+            raise c.ValidationError(
+                f"HDLC address length must be 1, 2, or 4 bytes, got {len(obj)}",
+                path=path,
+            )
+        if (obj[-1] & 1) == 0:
+            raise c.ValidationError(
+                "HDLC address missing extension end bit",
+                path=path,
+            )
+
+        raw = bytes(obj)
+        length = len(obj)
+        if length == 1:
+            logical = obj[0] >> 1
+            return c.Container(raw=raw, logical=logical, physical=None)
+        if length == 2:
+            logical = obj[0] >> 1
+            physical = obj[1] >> 1
+            return c.Container(raw=raw, logical=logical, physical=physical)
+        if length == 4:
+            logical = ((obj[0] >> 1) << 7) | (obj[1] >> 1)
+            physical = ((obj[2] >> 1) << 7) | (obj[3] >> 1)
+            return c.Container(raw=raw, logical=logical, physical=physical)
+
+        raise c.ValidationError(f"Invalid HDLC address length: {length}", path=path)
+
+    @override
+    def _encode(self, obj: Any, context: c.Container[Any], path: str) -> list[int]:
+        raise NotImplementedError()
+        if isinstance(obj, (bytes, bytearray)):
+            return list(obj)
+        if isinstance(obj, list):
+            return obj
+        if isinstance(obj, (c.Container, dict)):
+            if "raw" in obj and obj["raw"] is not None:
+                return list(obj["raw"])
+            if obj.get("physical") is None:
+                return [(int(obj["logical"]) << 1) | 1]
+            return [(int(obj["logical"]) << 1) & 0xFE, (int(obj["physical"]) << 1) | 1]
+        if isinstance(obj, int):
+            return [(obj << 1) | 1]
+        raise c.ValidationError(f"Cannot encode HDLC address: {obj!r}", path=path)
+
+
+def _address_collector(obj: int, elements: list[int], ctx: Any) -> bool:
+    return (obj & 1 != 0) or len(elements) >= 4
+
+
+HdlcAddress = HdlcAddressAdapter(
+    c.RepeatUntil(
+        predicate=_address_collector,
+        subcon=c.Byte,
+    )
+)
 
 FrameInfo = c.BitStruct(
     "frame_format" / c.Bit[4],
@@ -14,15 +168,12 @@ FrameInfo = c.BitStruct(
 
 Header = c.Struct(
     "start_tag" / c.Const(b"\x7e"),
+    "_header_start" / c.Tell,
     "frame_info" / FrameInfo,
-    "dest_addr" / c.Int8ub,  # TODO: Proper parsing. Not static.
-    "src_addr"
-    / c.Struct(  # TODO: Proper parsing. Not static.
-        c.Int8ub,
-        c.Int8ub,
-    ),
+    "dest_addr" / HdlcAddress,
+    "src_addr" / HdlcAddress,
     "control_field" / c.Byte,
-    "hcs" / c.Bytes(2),  # TODO: Verify checksum
+    "hcs" / FrameChecksum(lambda ctx: ctx._header_start, name="HCS"),
 )
 
 Meta = c.Struct(
@@ -32,8 +183,15 @@ Meta = c.Struct(
     c.Bytes(5),
 )
 
+
+def _get_footer_crc_start(ctx: c.Container[Any]) -> int:
+    if "_" in ctx and "header" in ctx._ and "_header_start" in ctx._.header:
+        return ctx._.header._header_start
+    return 0
+
+
 Footer = c.Struct(
-    "fcs" / c.Bytes(2),  # TODO: Verify checksum
+    "fcs" / FrameChecksum(_get_footer_crc_start, name="FCS"),
     "end_tag" / c.Const(b"\x7e"),
 )
 
@@ -77,10 +235,10 @@ ItemUint32 = c.Struct(
 )
 
 ItemInt32 = c.Struct(
-    "item_type"
-    / c.Const(
-        b"\x06"
-    ),  # TODO: This looks odd, but Kaifa states that Current is signed.
+    # DLMS/COSEM defines 0x05 as signed 32-bit (double-long) and 0x06 as unsigned
+    # 32-bit (double-long-unsigned). Kaifa meters specify current as signed,
+    # but use tag 0x06; we accept either 0x05 or 0x06.
+    "item_type" / c.OneOf(c.Bytes(1), [b"\x05", b"\x06"]),
     "val" / c.Int32sb,
 )
 
