@@ -27,7 +27,7 @@ Feedback and improvement suggestions are welcome.
 
 ## Installation
 
-This package requires Python 3.6+. It depends on several third party packages, so I recommend installing it in a [virtualenv](https://virtualenv.pypa.io/en/latest/). It is packaged to be installed through [pip](https://pip.pypa.io/en/stable/) from GitHub.
+This package requires Python 3.12+. It depends on several third party packages, so I recommend installing it in a [virtualenv](https://virtualenv.pypa.io/en/latest/). It is packaged to be installed through [pip](https://pip.pypa.io/en/stable/) from GitHub.
 
     $ pip install git+https://github.com/endrebjorsvik/kaifa-meter.git
 
