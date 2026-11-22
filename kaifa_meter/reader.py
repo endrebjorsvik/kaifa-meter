@@ -89,5 +89,16 @@ def read_file(filename: pathlib.Path) -> decoder.DecodedFrame:
         return decoder.decode_frame(get_frame(fp))
 
 
+def read_one_frame(device_path: str | pathlib.Path) -> bytes:
+    with Serial(
+        str(device_path),
+        2400,
+        bytesize=EIGHTBITS,
+        parity=PARITY_EVEN,
+        stopbits=STOPBITS_ONE,
+    ) as ser:
+        return get_frame(ser)
+
+
 if __name__ == "__main__":
     read_serial(pathlib.Path("/dev/ttyUSB0"), callback=None)

@@ -1,4 +1,5 @@
 import dataclasses
+import datetime
 import pathlib
 from collections.abc import Callable
 
@@ -119,6 +120,27 @@ def initdb(
 ) -> None:
     """Initialise database that will store measurement data."""
     db_writer.init_db(dbname, dbuser, dbtable)
+
+
+@cli.command()
+@click.argument("device")
+@click.option(
+    "--outdir",
+    type=click.Path(dir_okay=True, path_type=pathlib.Path),
+    required=True,
+    help="Directory to dump data.",
+)
+def dump_frame(
+    device: str,
+    outdir: pathlib.Path,
+) -> None:
+    """Initialise database that will store measurement data."""
+    if not outdir.exists():
+        outdir.mkdir()
+    frame = reader.read_one_frame(device)
+    ts = datetime.datetime.now()
+    dumpfile = outdir / f"dump-{ts.isoformat()}.dat"
+    dumpfile.write_bytes(frame)
 
 
 if __name__ == "__main__":
