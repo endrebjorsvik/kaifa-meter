@@ -107,5 +107,8 @@ class DbWriter:
             );"""
         ).format(sql.Identifier(self.dbtable))
 
-        with pg.connect(dbname=self.dbname, user=self.dbuser) as conn, conn.cursor() as cur:
+        with (
+            pg.connect(dbname=self.dbname, user=self.dbuser) as conn,
+            conn.cursor() as cur,
+        ):
             cur.execute(q, d)
