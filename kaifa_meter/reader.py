@@ -53,7 +53,7 @@ def get_frame(stream: io.RawIOBase | io.BufferedIOBase | io.IOBase) -> bytes:
 
 
 def read_serial(
-    device_path: pathlib.Path,
+    device_path: pathlib.Path | str,
     callback: FrameCallback | None = None,
 ) -> None:
     """Continuously read frames from a serial connection and dispatch them."""
