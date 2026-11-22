@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "kaifa_meter"
-version = "3.0.0"
+version = "4.0.0"
 authors = [{ name = "Endre Bjørsvik", email = "endrebjorsvik@gmail.com" }]
 description = "Utility for reading HAN data from Kaifa electriciy meters."
 readme = "README.md"
