@@ -15,6 +15,7 @@ dependencies = [
     "pyserial",
     "Click",
     "psycopg[binary]",
+    "ruff>=0.17.6",
 ]
 requires-python = ">=3.12"
 license = "GPL-3.0-only"
